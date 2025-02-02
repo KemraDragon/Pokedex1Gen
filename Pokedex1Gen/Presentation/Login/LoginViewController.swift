@@ -8,9 +8,8 @@
 import UIKit
 
 class LoginViewController: UIViewController {
-
-    private let validUsername = "Kevin"
-    private let validPassword = "Guitarra123!"
+    private let viewModel: LoginViewModel
+    private let coordinator: LoginCoordinator
 
     // Componentes UI
     private let titleLabel: UILabel = {
@@ -64,9 +63,20 @@ class LoginViewController: UIViewController {
         return view
     }()
 
+    init(viewModel: LoginViewModel, coordinator: LoginCoordinator) {
+        self.viewModel = viewModel
+        self.coordinator = coordinator
+        super.init(nibName: nil, bundle: nil)
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        bindViewModel()
     }
 
     private func setupUI() {
@@ -120,20 +130,23 @@ class LoginViewController: UIViewController {
         loginButton.addTarget(self, action: #selector(handleLogin), for: .touchUpInside)
     }
 
-    @objc private func handleLogin() {
-        guard let username = usernameTextField.text, let password = passwordTextField.text else { return }
+    private func bindViewModel() {
+        viewModel.onLoginSuccess = { [weak self] in
+            DispatchQueue.main.async {
+                self?.coordinator.showPokedex()
+            }
+        }
 
-        if username == validUsername && password == validPassword {
-            navigateToPokedex()
-        } else {
-            showAlert(message: "Usuario o contraseña incorrectos")
+        viewModel.onLoginFailure = { [weak self] errorMessage in
+            DispatchQueue.main.async {
+                self?.showAlert(message: errorMessage)
+            }
         }
     }
 
-    private func navigateToPokedex() {
-        let pokedexVC = PokedexViewController()
-        pokedexVC.modalPresentationStyle = .fullScreen
-        present(pokedexVC, animated: true)
+    @objc private func handleLogin() {
+        guard let username = usernameTextField.text, let password = passwordTextField.text else { return }
+        viewModel.login(username: username, password: password)
     }
 
     private func showAlert(message: String) {
