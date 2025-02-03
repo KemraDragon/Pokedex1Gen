@@ -38,11 +38,13 @@ class LocationViewController: UIViewController {
 }
 
 extension LocationViewController: UITableViewDelegate, UITableViewDataSource {
-    func tableView( tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    // KEVIN, TENIAS LAS FUNCIONES COMO tableView( tableView...., TE LAS DEJE DE LA MANERA CORRECTA
+    // SI TE TIRA ERROR ES QUE ES ALGO DE LAS VERSIONES DE XCODE, EN ESE CASO DESHACE MIS CAMBIOS ACA
+    func tableView( _ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return encounterAreas.count
     }
 
-    func tableView( tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView( _ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         cell.textLabel?.text = encounterAreas[indexPath.row].locationArea.name.capitalized
         return cell

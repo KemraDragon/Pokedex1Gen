@@ -42,7 +42,9 @@ class NetworkManager {
     }
 
     func fetchEncounterAreas(for pokemonID: Int, completion: @escaping (Result<[EncounterArea], Error>) -> Void) {
-        let urlString = "https://pokeapi.co/api/v2/pokemon//(pokemonID)/encounters"
+        let urlString = "https://pokeapi.co/api/v2/pokemon/\(pokemonID)/encounters"
+        // KEVIN, TENIAS EL SLASH EQUIVOCADO Y POR LO TANTO PENSABA QUE POKEMONID ERA PARTE DEL STRING,
+        // \ ESE SLASH ES EL CORRECTO PARA PASAR UN VALOR DISTINTO DENTRO DE UN STRING
         fetchData(endpoint: urlString, completion: completion)
     }
 }

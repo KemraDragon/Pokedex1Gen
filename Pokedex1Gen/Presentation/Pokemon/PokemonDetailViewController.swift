@@ -122,10 +122,10 @@ class PokemonDetailViewController: UIViewController {
                 self.typeLabel.text = "Tipo: \(detail.types.map { $0.type.name.capitalized }.joined(separator: ", "))"
                 self.heightLabel.text = "Altura: \(detail.height) dm"
                 self.weightLabel.text = "Peso: \(detail.weight) hg"
-                
-                if let spriteUrl = URL(string: detail.sprites.front_default) {
-                    self.loadImage(from: spriteUrl)
-                }
+                // TODO: KEVIN CORRIGE ESTO, AGREGA STRUCT SPRITES Y UN LET SPRITES A POKEMONDETAILRESPONSE
+//                if let spriteUrl = URL(string: detail.sprites.front_default) {
+//                    self.loadImage(from: spriteUrl)
+//                }
             }
         }
     }
