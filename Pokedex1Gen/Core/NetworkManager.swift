@@ -18,7 +18,7 @@ class NetworkManager {
             return
         }
 
-        let task = URLSession.shared.dataTask(with: url) { data, response, error in
+        let task = URLSession.shared.dataTask(with: url) { data, _, error in
             if let error = error {
                 completion(.failure(error))
                 return
@@ -39,6 +39,11 @@ class NetworkManager {
             }
         }
         task.resume()
+    }
+
+    func fetchEncounterAreas(for pokemonID: Int, completion: @escaping (Result<[EncounterArea], Error>) -> Void) {
+        let urlString = "https://pokeapi.co/api/v2/pokemon//(pokemonID)/encounters"
+        fetchData(endpoint: urlString, completion: completion)
     }
 }
 

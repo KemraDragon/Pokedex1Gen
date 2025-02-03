@@ -9,7 +9,6 @@ import UIKit
 
 class PokemonDetailViewController: UIViewController {
     private let viewModel: PokemonDetailViewModel
-
     private let url: String
 
     private let pokemonImageView: UIImageView = {
@@ -31,7 +30,6 @@ class PokemonDetailViewController: UIViewController {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 18)
         label.textAlignment = .center
-        label.textColor = .darkGray
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -39,6 +37,7 @@ class PokemonDetailViewController: UIViewController {
     private let heightLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 18)
+        label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
@@ -46,23 +45,23 @@ class PokemonDetailViewController: UIViewController {
     private let weightLabel: UILabel = {
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 18)
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-
-    private let locationLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 18)
-        label.numberOfLines = 0
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
 
-    init(
-        viewModel: PokemonDetailViewModel,
-        pokemonUrl: String
-    ) {
+    private let locationButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Ver Localizaciones", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        button.setTitleColor(.white, for: .normal)
+        button.backgroundColor = .systemBlue
+        button.layer.cornerRadius = 10
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+
+    init(viewModel: PokemonDetailViewModel, pokemonUrl: String) {
         self.viewModel = viewModel
         self.url = pokemonUrl
         super.init(nibName: nil, bundle: nil)
@@ -86,7 +85,7 @@ class PokemonDetailViewController: UIViewController {
         view.addSubview(typeLabel)
         view.addSubview(heightLabel)
         view.addSubview(weightLabel)
-        view.addSubview(locationLabel)
+        view.addSubview(locationButton)
 
         NSLayoutConstraint.activate([
             pokemonImageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
@@ -106,46 +105,43 @@ class PokemonDetailViewController: UIViewController {
             weightLabel.topAnchor.constraint(equalTo: heightLabel.bottomAnchor, constant: 10),
             weightLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            locationLabel.topAnchor.constraint(equalTo: weightLabel.bottomAnchor, constant: 20),
-            locationLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            locationLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            locationButton.topAnchor.constraint(equalTo: weightLabel.bottomAnchor, constant: 20),
+            locationButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            locationButton.widthAnchor.constraint(equalToConstant: 200),
+            locationButton.heightAnchor.constraint(equalToConstant: 50)
         ])
+
+        locationButton.addTarget(self, action: #selector(openLocationScreen), for: .touchUpInside)
     }
 
     private func bindViewModel() {
         viewModel.onUpdate = { [weak self] in
             guard let self = self, let detail = self.viewModel.pokemonDetail else { return }
-
             DispatchQueue.main.async {
                 self.nameLabel.text = detail.name.capitalized
-                self.typeLabel.text = "Tipo: " + detail.types.map { $0.type.name.capitalized }.joined(separator: ", ")
+                self.typeLabel.text = "Tipo: \(detail.types.map { $0.type.name.capitalized }.joined(separator: ", "))"
                 self.heightLabel.text = "Altura: \(detail.height) dm"
                 self.weightLabel.text = "Peso: \(detail.weight) hg"
-                self.locationLabel.text = "Ubicación: lol weon x2"
-
-                let imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/\(detail.id).png"
-                self.loadImage(from: imageUrl)
-            }
-        }
-
-        viewModel.onError = { [weak self] errorMessage in
-            DispatchQueue.main.async {
-                let alert = UIAlertController(title: "Error", message: errorMessage, preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK", style: .default))
-                self?.present(alert, animated: true)
+                
+                if let spriteUrl = URL(string: detail.sprites.front_default) {
+                    self.loadImage(from: spriteUrl)
+                }
             }
         }
     }
 
-    private func loadImage(from url: String) {
-        guard let imageUrl = URL(string: url) else { return }
-
-        URLSession.shared.dataTask(with: imageUrl) { data, _, _ in
-            guard let data = data, let image = UIImage(data: data) else { return }
-
-            DispatchQueue.main.async {
-                self.pokemonImageView.image = image
+    private func loadImage(from url: URL) {
+        DispatchQueue.global().async {
+            if let data = try? Data(contentsOf: url), let image = UIImage(data: data) {
+                DispatchQueue.main.async {
+                    self.pokemonImageView.image = image
+                }
             }
-        }.resume()
+        }
+    }
+
+    @objc private func openLocationScreen() {
+        let locationVC = LocationViewController(encounterAreas: viewModel.encounterAreas)
+        navigationController?.pushViewController(locationVC, animated: true)
     }
 }

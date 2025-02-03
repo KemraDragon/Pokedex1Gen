@@ -9,34 +9,46 @@ import Foundation
 
 class PokemonDetailViewModel {
     private let getPokemonDetailUseCase: GetPokemonDetailUseCaseProtocol
+    private let networkManager = NetworkManager.shared
 
-    // Datos del Pokémon que serán utilizados en la vista
     var pokemonDetail: PokemonDetailResponse? {
-        didSet {
-            onUpdate?()
-        }
+        didSet { onUpdate?() }
     }
 
-    // Callback para actualizar la vista cuando cambian los datos
-    var onUpdate: (() -> Void)?
+    var encounterAreas: [EncounterArea] = [] {
+        didSet { onEncounterAreasUpdate?() }
+    }
 
+    var onUpdate: (() -> Void)?
+    var onEncounterAreasUpdate: (() -> Void)?
     var onError: ((String) -> Void)?
 
     init(getPokemonDetailUseCase: GetPokemonDetailUseCaseProtocol) {
         self.getPokemonDetailUseCase = getPokemonDetailUseCase
     }
 
-    /// Obtiene los detalles del Pokémon seleccionado
     func fetchPokemonDetail(pokemonUrl: String) {
         getPokemonDetailUseCase.execute(url: pokemonUrl) { [weak self] result in
             switch result {
             case .success(let detail):
-                self?.pokemonDetail = detail
+                guard let self = self else { return }
+                self.pokemonDetail = detail
+                self.fetchEncounterAreas(pokemonID: detail.id)
             case .failure(let error):
-                self?.onError?("Error al obtener los detalles: \(error.localizedDescription)")
+                self?.onError?("Error al obtener los detalles: (error.localizedDescription)")
+            }
+        }
+    }
+
+    private func fetchEncounterAreas(pokemonID: Int) {
+        networkManager.fetchEncounterAreas(for: pokemonID) { [weak self] result in
+            switch result {
+            case .success(let areas):
+                self?.encounterAreas = areas
+                self?.onEncounterAreasUpdate?()
+            case .failure(let error):
+                self?.onError?("Error al obtener áreas de encuentro: (error.localizedDescription)")
             }
         }
     }
 }
-
-
