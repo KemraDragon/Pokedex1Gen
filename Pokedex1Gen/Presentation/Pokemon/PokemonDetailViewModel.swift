@@ -46,7 +46,7 @@ class PokemonDetailViewModel {
             case .success(let areas):
                 self?.encounterAreas = areas
                 self?.onEncounterAreasUpdate?()
-            case .failure(let error):
+             case .failure(let error):
                 self?.onError?("Error al obtener áreas de encuentro: (error.localizedDescription)")
             }
         }
